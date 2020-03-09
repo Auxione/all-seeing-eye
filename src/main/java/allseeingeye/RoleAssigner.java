@@ -2,80 +2,75 @@ package allseeingeye;
 
 import java.util.HashMap;
 
-import org.javacord.api.DiscordApi;
-import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.emoji.Emoji;
 import org.javacord.api.entity.message.Message;
+import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.user.User;
-import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.event.message.reaction.ReactionAddEvent;
 import org.javacord.api.event.message.reaction.ReactionRemoveEvent;
-import org.javacord.api.listener.message.MessageCreateListener;
 import org.javacord.api.listener.message.reaction.ReactionAddListener;
 import org.javacord.api.listener.message.reaction.ReactionRemoveListener;
 
-public class MessageListener implements MessageCreateListener, ReactionAddListener, ReactionRemoveListener {
-	public String selfName;
-	public String botAuthorName = "Crouzer";
+public class RoleAssigner implements ReactionAddListener, ReactionRemoveListener {
+	private Message addRoleMessage;
+	private Role addRole;
+	private User addRoleUser;
 
 	public HashMap<Emoji, Role> roleBook = new HashMap<Emoji, Role>();
-
 	public Message roleSelectionMessage;
-	private CommandList commandList;
 
-	public MessageListener(DiscordApi api) {
-		this.selfName = api.getYourself().getName();
-		this.commandList = new CommandList(this);
-
-		// roleBook.put(csgoEmoji, api.getRoleById("685419899278852112").get());
-		// roleBook.put(lolEmoji, api.getRoleById("686525818201309249").get());
-	}
-
-	public void onMessageCreate(MessageCreateEvent event) {
-		parseCommands(event);
+	public RoleAssigner() {
 	}
 
 	public void onReactionAdd(ReactionAddEvent event) {
 		addRoleToUserFromRoleMessage(event);
-		this.commandList.addRole.onReactionAdd(event);
+		onReactionAadd(event);
 	}
 
 	public void onReactionRemove(ReactionRemoveEvent event) {
 		removeRoleToUserFromRoleMessage(event);
 	}
 
-	private void parseCommands(MessageCreateEvent event) {
-		Message commandMessage = event.getMessage();
-		User userThatCalledCommand = event.getMessage().getAuthor().asUser().get();
+	public void addToBook(Message message, User user, String roleID) {
+		addRole = Main.api.getRoleById(roleID).get();
+		MessageBuilder mbuilder = new MessageBuilder().append("React with emoji to use with " + addRole.getName());
+		this.addRoleMessage = mbuilder.send(message.getChannel()).join();
+		this.addRoleUser = user;
+	}
 
-		String authorname = userThatCalledCommand.getName();
-		String messageContent = commandMessage.getContent();
+	public void onReactionAadd(ReactionAddEvent event) {
+		Message reactedMessage = event.getMessage().get();
+		User user = event.getUser();
 
-		System.out.println(messageContent);
-		if (authorname.contentEquals(botAuthorName) && messageContent.startsWith("!order")) {
-			String[] values = messageContent.split(" ");
+		if (this.addRoleMessage != null && this.addRoleUser != null) {
+			if (reactedMessage.getId() == this.addRoleMessage.getId() && user.getId() == this.addRoleUser.getId()) {
+				Emoji reactedEmoji = event.getEmoji();
 
-			if (values.length == 2) {
-				if (values[1].contentEquals("setListenChannel") == true) {
-					this.commandList.setListenChannel(event.getChannel());
+				this.roleBook.put(reactedEmoji, addRole);
+
+				if (this.roleSelectionMessage != null) {
+					this.roleSelectionMessage.addReaction(reactedEmoji.asUnicodeEmoji().get());
 				}
 
-				else if (values[1].contentEquals("createRoleMessage") == true) {
-					this.commandList.createRoleMessage(event.getMessage());
-				}
+				System.out.println(
+						addRole.getName() + " added to book with key of " + reactedEmoji.asUnicodeEmoji().get());
+				this.addRoleMessage.delete();
+				clean();
 			}
+		}
+	}
 
-			else if (values.length == 3) {
-				if (values[1].contentEquals("addRole") == true) {
-					this.commandList.addRole.add(commandMessage, userThatCalledCommand, values[2]);
-				}
+	private void clean() {
+		this.addRoleMessage = null;
+		this.addRole = null;
+		this.addRoleUser = null;
+	}
 
-				else if (values[1].contentEquals("removeRole") == true) {
-					this.commandList.addRole.remove(commandMessage, userThatCalledCommand, values[2]);
-				}
-			}
-			event.getMessage().delete();
+	public void removeFromBook(Message message, User user, String emojiUnicode) {
+		this.roleBook.remove(emojiUnicode);
+		if (this.roleSelectionMessage != null) {
+			this.roleSelectionMessage.removeReactionByEmoji(emojiUnicode);
 		}
 	}
 
@@ -109,4 +104,12 @@ public class MessageListener implements MessageCreateListener, ReactionAddListen
 		}
 	}
 
+	public void createRoleMessage(Message message) {
+		MessageBuilder m = new MessageBuilder().append("RoleSelectMessage");
+		this.roleSelectionMessage = m.send(message.getChannel()).join();
+		this.roleSelectionMessage.pin();
+		for (Emoji emoji : this.roleBook.keySet()) {
+			this.roleSelectionMessage.addReaction(emoji);
+		}
+	}
 }
