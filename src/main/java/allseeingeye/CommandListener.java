@@ -2,16 +2,31 @@ package allseeingeye;
 
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.Message;
+import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 
-public class CommandListener implements MessageCreateListener {
-	public TextChannel commandListeningChannel;
-	private RoleAssigner roleAssigner;
+public class CommandListener implements MessageCreateListener, IChatCommand {
+	public static TextChannel commandListeningChannel;
 
-	public CommandListener(RoleAssigner roleAssigner) {
+	private String parentCommand = "CommandListener";
+	private ChatCommand help = new ChatCommand("help", "Display help message");
+	private ChatCommand setListenChannel = new ChatCommand(parentCommand, "setChannel",
+			"Sets listening textchannel for bot commands");
+
+	private NewUserHandler newUserHandler;
+	private RoleAssigner roleAssigner;
+	private CommanderList commanderList;
+
+	public CommandListener() {
+		Main.logger.addLog("CommandListener initialized.");
+	}
+
+	public void setChatCommands(RoleAssigner roleAssigner, NewUserHandler newUserHandler, CommanderList commanderList) {
 		this.roleAssigner = roleAssigner;
+		this.newUserHandler = newUserHandler;
+		this.commanderList = commanderList;
 	}
 
 	public void onMessageCreate(MessageCreateEvent event) {
@@ -23,36 +38,50 @@ public class CommandListener implements MessageCreateListener {
 		User userThatCalledCommand = event.getMessage().getAuthor().asUser().get();
 		TextChannel commandchannel = event.getChannel();
 
-		String authorname = userThatCalledCommand.getName();
-		String messageContent = commandMessage.getContent();
+		if (commanderList.isCommander(userThatCalledCommand)) {
+			String messageContent = commandMessage.getContent();
+			if (messageContent.startsWith("!order")) {
+				String[] values = messageContent.split(" ");
 
-		System.out.println(messageContent);
-		if (authorname.contentEquals(Main.Bot_Author) && messageContent.startsWith("!order")) {
-			String[] values = messageContent.split(" ");
-
-			if (values[1].contentEquals("setListenChannel") == true) {
-				this.setListenChannel(commandchannel);
+				execute(commandchannel, userThatCalledCommand, commandMessage, values);
+				newUserHandler.execute(commandchannel, userThatCalledCommand, commandMessage, values);
+				roleAssigner.execute(commandchannel, userThatCalledCommand, commandMessage, values);
+				commanderList.execute(commandchannel, userThatCalledCommand, commandMessage, values);
+				Main.logger.execute(commandchannel, userThatCalledCommand, commandMessage, values);
+				
+				event.getMessage().delete();
 			}
-
-			if (this.commandListeningChannel != null) {
-				if (values[1].contentEquals("createRoleMessage") == true) {
-					this.roleAssigner.createRoleMessage(event.getMessage());
-				}
-
-				else if (values[1].contentEquals("addRole") == true) {
-					this.roleAssigner.addToBook(commandMessage, userThatCalledCommand, values[2]);
-				}
-
-				else if (values[1].contentEquals("removeRole") == true) {
-					this.roleAssigner.removeFromBook(commandMessage, userThatCalledCommand, values[2]);
-				}
-			}
-			event.getMessage().delete();
 		}
 	}
 
+	public void execute(TextChannel textChannel, User userThatCalledCommand, Message message, String[] values) {
+		if (values[1].contentEquals(help.command) == true) {
+			this.createAndSendHelpMessage(textChannel);
+		}
+
+		if (values[1].contentEquals(this.parentCommand) == true) {
+			if (values[2].contentEquals(setListenChannel.command) == true) {
+				this.setListenChannel(textChannel);
+			}
+		}
+	}
+
+	private void createAndSendHelpMessage(TextChannel channel) {
+		MessageBuilder h = new MessageBuilder();
+		for (ChatCommand cc : ChatCommand.commandList) {
+			h.append("> ");
+			if (cc.parentCommand != null) {
+				h.append(cc.parentCommand).append(" ");
+			}
+			h.append(cc.command).append(" : ").append(cc.description).appendNewLine();
+		}
+		h.appendNewLine();
+		h.append("Author: Crouzer#2959").appendNewLine();
+		h.send(channel);
+	}
+
 	private void setListenChannel(TextChannel channel) {
-		this.commandListeningChannel = channel;
-		System.out.println("Listening channel set to " + this.commandListeningChannel);
+		CommandListener.commandListeningChannel = channel;
+		Main.logger.addLog("CommandListener: channel set to " + CommandListener.commandListeningChannel);
 	}
 }

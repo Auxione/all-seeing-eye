@@ -6,18 +6,24 @@ import org.javacord.api.DiscordApiBuilder;
 public class Main {
 	static String Token = "NjQzMTAxODIxNzY1OTQzMjk2.XcglSA.tmppYWpbmkptPqSVlKFIOpCE0Vk";
 	static String bot_Name = "All Seeing Eye";
-	static String Bot_Author = "Crouzer";
 	static DiscordApi api;
+	static Logger logger;
 
 	public static void main(String[] args) {
 		api = new DiscordApiBuilder().setToken(Token).login().join();
-		RoleAssigner ra = new RoleAssigner();
-		CommandListener cl = new CommandListener(ra);
+		logger = new Logger("logs.txt");
 		
-		api.addMessageCreateListener(cl);
-		api.addReactionAddListener(ra);
-		api.addReactionRemoveListener(ra);
+		CommanderList commanderList = new CommanderList();
+		RoleAssigner roleAssigner = new RoleAssigner();
+		NewUserHandler newUserHandler = new NewUserHandler();
+		CommandListener commandListener = new CommandListener();
+		
+		commandListener.setChatCommands(roleAssigner, newUserHandler, commanderList);
+		
+		api.addListener(commandListener);
+		api.addListener(roleAssigner);
+		api.addListener(newUserHandler);
 
-		System.out.println("Ready.");
+		Main.logger.addLog("Ready.");
 	}
 }
