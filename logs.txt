@@ -1,0 +1,6 @@
+2020/03/12|05:09:22 => Logger initialized.
+2020/03/12|05:09:22 => RoleAssiger initialized.
+2020/03/12|05:09:22 => NewUserHandler initialized.
+2020/03/12|05:09:22 => CommandListener initialized.
+2020/03/12|05:09:22 => Ready.
+2020/03/12|05:09:29 => Logger: saved to file.

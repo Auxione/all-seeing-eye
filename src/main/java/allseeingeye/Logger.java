@@ -1,9 +1,9 @@
 package allseeingeye;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -42,16 +42,14 @@ public class Logger implements IChatCommand {
 
 	private void saveToFile() {
 		try {
-			this.logFile = new PrintWriter(filePath, "UTF-8");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
+			this.logFile = new PrintWriter(new FileWriter(filePath, true));
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 		addLog("Logger: saved to file.");
-		logFile.print(log);
+		logFile.print(this.log);
 		logFile.close();
 		this.log = "";
 	}
@@ -62,7 +60,7 @@ public class Logger implements IChatCommand {
 		File file = new File(filePath);
 		uploadMessage.append("Logs").addAttachment(file);
 		uploadMessage.send(user);
-		addLog("Logger: "+user.getName()+" wanted bot logs.");
+		addLog("Logger: " + user.getName() + " wanted bot logs.");
 	}
 
 	public void execute(TextChannel textChannel, User userThatCalledCommand, Message message, String[] values) {

@@ -1,5 +1,6 @@
 package allseeingeye;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class RoleAssigner implements ReactionAddListener, IChatCommand {
 			"Create role message for automation.");
 
 	public HashMap<Emoji, Role> roleBook = new HashMap<Emoji, Role>();
+
 	public Message roleSelectionMessage;
 
 	public RoleAssigner() {
@@ -66,6 +68,9 @@ public class RoleAssigner implements ReactionAddListener, IChatCommand {
 					+ reactedEmoji.getMentionTag() + " by " + user.getName());
 			this.addRoleMessage.delete();
 			clean();
+			if (this.roleSelectionMessage != null) {
+				this.roleSelectionMessage.addReaction(reactedEmoji);
+			}
 		}
 	}
 
@@ -127,6 +132,9 @@ public class RoleAssigner implements ReactionAddListener, IChatCommand {
 			this.roleBook.remove(emojiToRemove);
 			Main.logger.addLog(
 					"RoleAssigner: " + userThatCalledCommand.getName() + " removed roleID " + id + " from book");
+			if (this.roleSelectionMessage != null) {
+				this.roleSelectionMessage.removeReactionByEmoji(emojiToRemove);
+			}
 			return;
 		}
 		Main.logger.addLog("RoleAssigner: " + userThatCalledCommand.getName() + "wanted to remove roleID " + id
@@ -137,7 +145,7 @@ public class RoleAssigner implements ReactionAddListener, IChatCommand {
 		MessageBuilder m = new MessageBuilder();
 		m.append("Role Select Message").appendNewLine();
 		for (Emoji emoji : this.roleBook.keySet()) {
-			m.append(">").append(this.roleBook.get(emoji).getName()).append(" = ").append(emoji);
+			m.append(">").append(this.roleBook.get(emoji).getName()).append(" = ").append(emoji).appendNewLine();
 		}
 		this.roleSelectionMessage = m.send(message.getChannel()).join();
 		for (Emoji emoji : this.roleBook.keySet()) {
