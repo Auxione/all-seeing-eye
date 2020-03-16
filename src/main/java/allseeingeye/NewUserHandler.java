@@ -31,8 +31,8 @@ public class NewUserHandler implements ServerMemberJoinListener, IChatCommand {
 					"NewUserHandler: Welcome message wanted to set by " + user.getName() + " but message not found");
 			return;
 		}
-		this.welcomingMessage = new MessageBuilder();
-		this.welcomingMessage.setContent(message.getContent());
+		this.welcomingMessageOriginal = message;
+		this.welcomingMessage = MessageBuilder.fromMessage(welcomingMessageOriginal);
 		Main.logger.addLog("NewUserHandler: Welcome message set by " + user.getName());
 	}
 
@@ -79,7 +79,7 @@ public class NewUserHandler implements ServerMemberJoinListener, IChatCommand {
 			mm.append(this.welcomingMessageOriginal.getIdAsString());
 		}
 		mm.send(textChannel);
-		Main.logger.addLog("NewUserHandler: " + user.getName()+ " wanted to see status.");
+		Main.logger.addLog("NewUserHandler: " + user.getName() + " wanted to see status.");
 	}
 
 	public void onServerMemberJoin(ServerMemberJoinEvent event) {
@@ -91,5 +91,30 @@ public class NewUserHandler implements ServerMemberJoinListener, IChatCommand {
 		if (this.welcomingRole != null) {
 			newUser.addRole(welcomingRole);
 		}
+	}
+
+	public void load(ConfigurationData configurationData) {
+		if (configurationData.welcomingMessageID != null && CommandListener.commandListeningChannel != null) {
+			this.welcomingMessage = MessageBuilder.fromMessage(Main.api
+					.getMessageById(configurationData.welcomingMessageID, CommandListener.commandListeningChannel)
+					.join());
+			Main.logger.addLog("NewUserHandler: welcomingMessage loaded from ASEconfig");
+		}
+		
+		if (configurationData.welcomingRoleID != null) {
+			this.welcomingRole = Main.api.getRoleById(configurationData.welcomingRoleID).get();
+			Main.logger.addLog("NewUserHandler: welcomingRole loaded from ASEconfig");
+		}
+	}
+
+	public void save(ConfigurationData configurationData) {
+		if (this.welcomingMessageOriginal != null) {
+			configurationData.welcomingMessageID = this.welcomingMessageOriginal.getId();
+		}
+
+		if (this.welcomingRole != null) {
+			configurationData.welcomingRoleID = this.welcomingRole.getId();
+		}
+		Main.logger.addLog("NewUserHandler: data saved to ASEconfig");
 	}
 }

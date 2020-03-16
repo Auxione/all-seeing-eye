@@ -8,7 +8,7 @@ import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.user.User;
 
 public class CommanderList implements IChatCommand {
-	private ArrayList<Long> commandersID;
+	public ArrayList<Long> commandersID;
 
 	private String parentCommand = "CommanderList";
 	private ChatCommand addCommander = new ChatCommand(parentCommand, "add", "Add new Commander. Usage: add USERID");
@@ -51,26 +51,26 @@ public class CommanderList implements IChatCommand {
 		Long longID = Long.parseLong(id);
 		for (Long commander : commandersID) {
 			if (commander == longID) {
-				Main.logger.addLog("CommandListener: " + user.getName() + " wanted to add ID " + longID
+				Main.logger.addLog("CommanderList: " + user.getName() + " wanted to add ID " + longID
 						+ " but it already in list.");
 				return;
 			}
 		}
 		this.commandersID.add(longID);
-		Main.logger.addLog("CommandListener: New commander added with ID " + longID + " by " + user.getName());
+		Main.logger.addLog("CommanderList: New commander added with ID " + longID + " by " + user.getName());
 	}
-	
+
 //not working
 	private void removeCommander(User user, String id) {
 		Long longID = Long.parseLong(id);
 		for (Long commander : commandersID) {
 			if (commander == longID) {
 				this.commandersID.remove(longID);
-				Main.logger.addLog("CommandListener: Commander with ID " + longID + " removed by " + user.getName());
+				Main.logger.addLog("CommanderList: Commander with ID " + longID + " removed by " + user.getName());
 				return;
 			}
 		}
-		Main.logger.addLog("CommandListener: " + user.getName() + " wanted to remove ID " + longID
+		Main.logger.addLog("CommanderList: " + user.getName() + " wanted to remove ID " + longID
 				+ " but it does not exist in list.");
 	}
 
@@ -82,6 +82,18 @@ public class CommanderList implements IChatCommand {
 			h.append("> ").append(u).appendNewLine();
 		}
 		h.send(textChannel);
-		Main.logger.addLog("CommandListener: " + user.getName() + " wanted to see the commander list.");
+		Main.logger.addLog("CommanderList: " + user.getName() + " wanted to see the commander list.");
+	}
+
+	public void load(ConfigurationData configurationData) {
+		if (configurationData.commandersID != null) {
+			this.commandersID = configurationData.commandersID;
+			Main.logger.addLog("CommanderList: Loaded commanders from ASEconfig.");
+		}
+	}
+
+	public void save(ConfigurationData configurationData) {
+		configurationData.commandersID = this.commandersID;
+		Main.logger.addLog("CommanderList: commanders saved to ASEconfig.");
 	}
 }

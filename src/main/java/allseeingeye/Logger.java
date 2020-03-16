@@ -14,7 +14,8 @@ import org.javacord.api.entity.user.User;
 
 public class Logger implements IChatCommand {
 	private String parentCommand = "Logger";
-	private ChatCommand saveLogs = new ChatCommand(parentCommand, "save", "Save logs to file.");
+	private ChatCommand saveLogs = new ChatCommand(parentCommand, "save", "Save data to ASEconfig.");
+	private ChatCommand loadData = new ChatCommand(parentCommand, "load", "load data from ASEconfig.");
 	private ChatCommand uploadLogs = new ChatCommand(parentCommand, "upload", "upload logs to discord.");
 
 	private String log = "";
@@ -66,12 +67,40 @@ public class Logger implements IChatCommand {
 	public void execute(TextChannel textChannel, User userThatCalledCommand, Message message, String[] values) {
 		if (values[1].contentEquals(parentCommand) == true) {
 			if (values[2].contentEquals(saveLogs.command) == true) {
+				CommandListener.commandListeningChannel = textChannel;
+				packData();
 				Main.logger.saveToFile();
 			}
 
 			else if (values[2].contentEquals(uploadLogs.command) == true) {
 				Main.logger.uploadLog(userThatCalledCommand);
 			}
+
+			else if (values[2].contentEquals(loadData.command) == true) {
+				loadData();
+			}
 		}
+	}
+
+	private void packData() {
+		ConfigurationData configurationData = new ConfigurationData();
+
+		Main.roleAssigner.save(configurationData);
+		Main.newUserHandler.save(configurationData);
+		Main.commanderList.save(configurationData);
+		Main.commandListener.save(configurationData);
+		InputOutputData.saveObject(configurationData, "ASEconfig");
+	}
+
+	public void loadData() {
+		ConfigurationData configurationData = (ConfigurationData) InputOutputData.loadObject("ASEconfig");
+		if (configurationData == null) {
+			addLog("Logger: ASEconfig not found.");
+			return;
+		}
+		Main.commanderList.load(configurationData);
+		Main.commandListener.load(configurationData);
+		Main.roleAssigner.load(configurationData);
+		Main.newUserHandler.load(configurationData);
 	}
 }

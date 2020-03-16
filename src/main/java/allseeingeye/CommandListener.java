@@ -48,7 +48,7 @@ public class CommandListener implements MessageCreateListener, IChatCommand {
 				roleAssigner.execute(commandchannel, userThatCalledCommand, commandMessage, values);
 				commanderList.execute(commandchannel, userThatCalledCommand, commandMessage, values);
 				Main.logger.execute(commandchannel, userThatCalledCommand, commandMessage, values);
-				
+
 				event.getMessage().delete();
 			}
 		}
@@ -83,5 +83,20 @@ public class CommandListener implements MessageCreateListener, IChatCommand {
 	private void setListenChannel(TextChannel channel) {
 		CommandListener.commandListeningChannel = channel;
 		Main.logger.addLog("CommandListener: channel set to " + CommandListener.commandListeningChannel);
+	}
+
+	public void load(ConfigurationData configurationData) {
+		if (configurationData.commandListeningChannelID != null) {
+			CommandListener.commandListeningChannel = Main.api
+					.getTextChannelById(configurationData.commandListeningChannelID).get();
+			Main.logger.addLog("CommandListener: commandListeningChannel loaded from ASEconfig");
+		}
+	}
+
+	public void save(ConfigurationData configurationData) {
+		if (CommandListener.commandListeningChannel != null) {
+			configurationData.commandListeningChannelID = CommandListener.commandListeningChannel.getId();
+		}
+		Main.logger.addLog("CommandListener: commandListeningChannel saved to ASEconfig");
 	}
 }
