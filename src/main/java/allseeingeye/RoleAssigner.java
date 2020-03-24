@@ -32,6 +32,7 @@ public class RoleAssigner implements ReactionAddListener, ReactionRemoveListener
 
 	public HashMap<String, Long> roleBook = new HashMap<String, Long>();
 	public Message roleSelectionMessage;
+	public TextChannel roleSelectionMessageTextChannel;
 
 	public boolean roleMessageDeleteWhenReactBool = false;
 
@@ -211,6 +212,7 @@ public class RoleAssigner implements ReactionAddListener, ReactionRemoveListener
 			m.append(">").append(role.getName()).append(" = ").append(emoji).appendNewLine();
 		}
 		this.roleSelectionMessage = m.send(message.getChannel()).join();
+		this.roleSelectionMessageTextChannel = textChannel;
 
 		for (String emoji : this.roleBook.keySet()) {
 			this.roleSelectionMessage.addReaction(getID(emoji));
@@ -277,18 +279,23 @@ public class RoleAssigner implements ReactionAddListener, ReactionRemoveListener
 			this.roleBook = configurationData.roleBook;
 			Main.logger.addLog("RoleAssigner: roleBook loaded from ASEconfig");
 		}
-		if (configurationData.roleSelectionMessageID != null && CommandListener.commandListeningChannel != null) {
-			this.roleSelectionMessage = Main.api
-					.getMessageById(configurationData.roleSelectionMessageID, CommandListener.commandListeningChannel)
-					.join();
-			if (this.roleSelectionMessage != null) {
-				configurationData.roleMessageDeleteWhenReactBool = this.roleMessageDeleteWhenReactBool;
-				Main.logger.addLog("RoleAssigner: roleSelectionMessage loaded from ASEconfig");
+		if (configurationData.roleSelectionTextChannelID != 0) {
+			this.roleSelectionMessageTextChannel = Main.api.getChannelById(configurationData.roleSelectionTextChannelID)
+					.get().asTextChannel().get();
+			if (this.roleSelectionMessageTextChannel != null) {
+				this.roleSelectionMessage = Main.api
+						.getMessageById(configurationData.roleSelectionMessageID, this.roleSelectionMessageTextChannel)
+						.join();
+				if (this.roleSelectionMessage != null) {
+					configurationData.roleMessageDeleteWhenReactBool = this.roleMessageDeleteWhenReactBool;
+					Main.logger.addLog("RoleAssigner: roleSelectionMessage loaded from ASEconfig");
+				}
+
+				else if (this.roleSelectionMessage == null) {
+					Main.logger.addLog("RoleAssigner: roleSelectionMessage is null?");
+				}
 			}
 
-			else if (this.roleSelectionMessage == null) {
-				Main.logger.addLog("RoleAssigner: roleSelectionMessage is null?");
-			}
 		}
 		if (this.roleMessageDeleteWhenReactBool != configurationData.roleMessageDeleteWhenReactBool) {
 			this.roleMessageDeleteWhenReactBool = configurationData.roleMessageDeleteWhenReactBool;
@@ -302,6 +309,8 @@ public class RoleAssigner implements ReactionAddListener, ReactionRemoveListener
 		configurationData.roleMessageDeleteWhenReactBool = this.roleMessageDeleteWhenReactBool;
 		if (this.roleSelectionMessage != null) {
 			configurationData.roleSelectionMessageID = this.roleSelectionMessage.getId();
+			configurationData.roleSelectionTextChannelID = this.roleSelectionMessage.getChannel().getId();
 		}
+		Main.logger.addLog("RoleAssigner: saved to ASEconfig.");
 	}
 }

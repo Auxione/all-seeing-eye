@@ -7,10 +7,11 @@ import java.util.HashMap;
 public class ConfigurationData implements Serializable{
 	public HashMap<String, Long> roleBook;
 	public ArrayList<Long> commandersID;
-	public Long roleSelectionMessageID;
-	public Long welcomingMessageID;
-	public Long welcomingRoleID;
-	public Long commandListeningChannelID;
-	public Long roleSelectionTextChannelID;
+	public long welcomingMessageID;
+	public long welcomingRoleID;
+	public long commandListeningChannelID;
+	public long roleSelectionMessageID;
+	public long roleSelectionTextChannelID;
 	public boolean roleMessageDeleteWhenReactBool;
+	
 }

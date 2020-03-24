@@ -86,7 +86,7 @@ public class CommandListener implements MessageCreateListener, IChatCommand {
 	}
 
 	public void load(ConfigurationData configurationData) {
-		if (configurationData.commandListeningChannelID != null) {
+		if (configurationData.commandListeningChannelID != 0) {
 			CommandListener.commandListeningChannel = Main.api
 					.getTextChannelById(configurationData.commandListeningChannelID).get();
 			Main.logger.addLog("CommandListener: commandListeningChannel loaded from ASEconfig");

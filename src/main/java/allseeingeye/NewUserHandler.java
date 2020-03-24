@@ -94,14 +94,14 @@ public class NewUserHandler implements ServerMemberJoinListener, IChatCommand {
 	}
 
 	public void load(ConfigurationData configurationData) {
-		if (configurationData.welcomingMessageID != null && CommandListener.commandListeningChannel != null) {
+		if (configurationData.welcomingMessageID != 0 && CommandListener.commandListeningChannel != null) {
 			this.welcomingMessage = MessageBuilder.fromMessage(Main.api
 					.getMessageById(configurationData.welcomingMessageID, CommandListener.commandListeningChannel)
 					.join());
 			Main.logger.addLog("NewUserHandler: welcomingMessage loaded from ASEconfig");
 		}
 		
-		if (configurationData.welcomingRoleID != null) {
+		if (configurationData.welcomingRoleID != 0) {
 			this.welcomingRole = Main.api.getRoleById(configurationData.welcomingRoleID).get();
 			Main.logger.addLog("NewUserHandler: welcomingRole loaded from ASEconfig");
 		}

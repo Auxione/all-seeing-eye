@@ -13,25 +13,30 @@ public class Main {
 	static RoleAssigner roleAssigner;
 	static NewUserHandler newUserHandler;
 	static CommandListener commandListener;
-
+	static ReconnectManager reconnectManager;
+	
 	public static void main(String[] args) {
-		logger = new Logger("logs.txt");
+		Main.logger = new Logger("logs.txt");
 		Main.logger.addLog("all-seeing-eye started.");
-		
-		api = new DiscordApiBuilder().setToken(Token).login().join();
 		Main.commanderList = new CommanderList();
 		Main.roleAssigner = new RoleAssigner();
 		Main.newUserHandler = new NewUserHandler();
 		Main.commandListener = new CommandListener();
+		Main.reconnectManager = new ReconnectManager();
+		
+		Main.commandListener.setChatCommands(roleAssigner, newUserHandler, commanderList);
+		Main.logger.addLog("Connecting to server...");
+		api = new DiscordApiBuilder().setToken(Token).login().join();
 
-		commandListener.setChatCommands(roleAssigner, newUserHandler, commanderList);
-
+		api.setReconnectDelay(attempt -> attempt * 2);
 		api.addListener(commandListener);
 		api.addListener(roleAssigner);
 		api.addListener(newUserHandler);
+		api.addListener(reconnectManager);
 		argum(args);
-		
+
 		Main.logger.addLog("Ready.");
+
 	}
 
 	private static void argum(String[] args) {
@@ -40,5 +45,9 @@ public class Main {
 				logger.loadData();
 			}
 		}
+	}
+
+	private static void reconnect() {
+
 	}
 }
