@@ -1,4 +1,3 @@
-package allseeingeye;
 
 import org.javacord.api.event.connection.LostConnectionEvent;
 import org.javacord.api.event.connection.ReconnectEvent;

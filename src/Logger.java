@@ -1,4 +1,3 @@
-package allseeingeye;
 
 import java.io.File;
 import java.io.FileWriter;
