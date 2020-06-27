@@ -3,7 +3,7 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 
 public class Main {
-	static String Token = "NjQzMTAxODIxNzY1OTQzMjk2.XcglSA.tmppYWpbmkptPqSVlKFIOpCE0Vk";
+	static String Token = "";
 	static String bot_Name = "All Seeing Eye";
 	static DiscordApi api;
 
